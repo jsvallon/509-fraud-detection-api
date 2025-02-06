@@ -1,7 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, File, UploadFile
 import joblib
 import numpy as np
 from pydantic import BaseModel
+import io
+import pandas as pd
+
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -100,3 +103,20 @@ async def predict(transaction: TransactionData):
 @app.get("/")
 async def root():
     return {"message": "FastAPI Model is Running!"}
+
+@app.post("/predict_csv")
+async def predict(file: UploadFile = File(...)):
+  #Read CSV file as a DataFrame
+  df = pd.read_csv(io.StringIO(file.file.read().decode("utf-8")), low_memory=False)
+
+   # Ensure the DataFrame has the required features for prediction
+  required_features = ["Feature_1", "Feature_2", "Feature_3"]  # Update with actual feature names
+  if not set(required_features).issubset(df.columns):
+      return {"error": "Missing required features in the uploaded CSV"}
+
+    # Make predictions
+  predictions = model.predict(df[required_features])  # Ensure you pass only the required features
+  df["fraudulent"] = predictions.tolist()  # Convert NumPy output to Python list
+
+    # Return predictions as a JSON response
+  return df.to_dict(orient="records")
