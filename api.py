@@ -7,7 +7,7 @@ from pydantic import BaseModel
 app = FastAPI()
 
 # Load the trained model
-model = joblib.load("model.pkl")  # Ensure `model.pkl` is in the correct path
+model = joblib.load("fraud_model.pkl")  # Ensure `model.pkl` is in the correct path
 
 # Define the request data model
 class TransactionData(BaseModel):
