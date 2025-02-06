@@ -47,7 +47,7 @@ class TransactionData(BaseModel):
 async def predict(transaction: TransactionData):
     try:
         # Convert input to numpy array
-        data = np.array([[
+        data = [[
             transaction.amount,
             transaction.oldbalanceOrg,
             transaction.newbalanceOrig,
@@ -78,15 +78,19 @@ async def predict(transaction: TransactionData):
             transaction.feature_28,
             transaction.feature_29,
             transaction.feature_30
-        ]])
+        ]]
 
         # Make a prediction
-        fraud_probability = model.predict_proba(data)[0][1]  # Assuming model supports predict_proba
-        fraudulent = fraud_probability > 0.5  # Example threshold
+        prediction = model.predict(data)[0]  # Might be numpy.bool_
+        fraud_probability = model.predict_proba(data)[0][1]  # Probability of fraud
+
+        # Convert numpy.bool_ to Python bool
+        is_fraudulent = bool(prediction)
 
         return {
-            "fraud_probability": round(fraud_probability, 2),
-            "fraudulent": fraudulent
+            "fraud_probability": float(fraud_probability),  # Convert numpy float to Python float
+            "fraudulent": is_fraudulent,  
+            "top_features": ["Feature_13", "Feature_11", "Feature_15"]  # Example feature importance
         }
     
     except Exception as e:
